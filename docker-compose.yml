@@ -1,0 +1,34 @@
+version: '3'
+
+services:
+  db:
+    image: postgres
+    environment:
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_USER: postgres
+      POSTGRES_DB: postgres
+    ports:
+      - 5432:5432
+
+  migration:
+    build: .
+    command: python3 manage.py migrate --noinput
+    volumes:
+      - .:/code
+    depends_on:
+      - db
+
+  web:
+    build: .
+    command: python3 manage.py runserver 0.0.0.0:8000 
+    volumes:
+      - .:/code
+    ports:
+      - "8000:8000"
+    depends_on:
+      - db
+      - migration
+    environment: 
+      PYTHONDONTWRITEBYTECODE: 1
+      WERKZEUG_DEBUG_PIN: 'off'
+      DJANGO_SETTINGS_MODULE: config.settings
